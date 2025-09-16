@@ -1,6 +1,10 @@
 package gcrypto
 
 import (
+	"bytes"
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/des"
 	"crypto/elliptic"
 	"crypto/md5"
 	"crypto/rand"
@@ -10,6 +14,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"io"
 	"math/big"
 
 	"github.com/tjfoc/gmsm/sm2"
@@ -113,4 +118,88 @@ func toSM2(d []byte, strict bool) (*sm2.PrivateKey, error) {
 
 func ToSM2(d []byte) (*sm2.PrivateKey, error) {
 	return toSM2(d, true)
+}
+
+// ---------------- AES ----------------
+func AESCBCEncrypt(key, plain []byte) ([]byte, error) {
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+	plain = pkcs7Pad(plain, block.BlockSize())
+	cipherText := make([]byte, block.BlockSize()+len(plain))
+	iv := cipherText[:block.BlockSize()]
+	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
+		return nil, err
+	}
+	mode := cipher.NewCBCEncrypter(block, iv)
+	mode.CryptBlocks(cipherText[block.BlockSize():], plain)
+	return cipherText, nil
+}
+
+func AESCBCDecrypt(key, cipherText []byte) ([]byte, error) {
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+	if len(cipherText) < block.BlockSize() {
+		return nil, errors.New("cipher too short")
+	}
+	iv := cipherText[:block.BlockSize()]
+	cipherText = cipherText[block.BlockSize():]
+	mode := cipher.NewCBCDecrypter(block, iv)
+	mode.CryptBlocks(cipherText, cipherText)
+	return pkcs7Unpad(cipherText)
+}
+
+// ---------------- 3DES ----------------
+func TripleDESEncrypt(key, plain []byte) ([]byte, error) {
+	block, err := des.NewTripleDESCipher(key)
+	if err != nil {
+		return nil, err
+	}
+	plain = pkcs7Pad(plain, block.BlockSize())
+	cipherText := make([]byte, block.BlockSize()+len(plain))
+	iv := cipherText[:block.BlockSize()]
+	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
+		return nil, err
+	}
+	mode := cipher.NewCBCEncrypter(block, iv)
+	mode.CryptBlocks(cipherText[block.BlockSize():], plain)
+	return cipherText, nil
+}
+
+func TripleDESDecrypt(key, cipherText []byte) ([]byte, error) {
+	block, err := des.NewTripleDESCipher(key)
+	if err != nil {
+		return nil, err
+	}
+	if len(cipherText) < block.BlockSize() {
+		return nil, errors.New("cipher too short")
+	}
+	iv := cipherText[:block.BlockSize()]
+	cipherText = cipherText[block.BlockSize():]
+	mode := cipher.NewCBCDecrypter(block, iv)
+	mode.CryptBlocks(cipherText, cipherText)
+	return pkcs7Unpad(cipherText)
+}
+
+// ---------------- pkcs7 ----------------
+func pkcs7Pad(data []byte, bs int) []byte {
+	pad := bs - len(data)%bs
+	out := make([]byte, len(data)+pad)
+	copy(out, data)
+	copy(out[len(data):], bytes.Repeat([]byte{byte(pad)}, pad))
+	return out
+}
+
+func pkcs7Unpad(data []byte) ([]byte, error) {
+	if len(data) == 0 {
+		return nil, errors.New("empty data")
+	}
+	pad := int(data[len(data)-1])
+	if pad > len(data) {
+		return nil, errors.New("invalid pad")
+	}
+	return data[:len(data)-pad], nil
 }

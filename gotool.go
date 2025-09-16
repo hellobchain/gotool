@@ -14,6 +14,7 @@ import (
 	_ "github.com/hellobchain/gotool/gexcel"
 	_ "github.com/hellobchain/gotool/gexec"
 	_ "github.com/hellobchain/gotool/gfile"
+	_ "github.com/hellobchain/gotool/gfuture"
 	_ "github.com/hellobchain/gotool/ghttp"
 	_ "github.com/hellobchain/gotool/gjson"
 	_ "github.com/hellobchain/gotool/gnet"
