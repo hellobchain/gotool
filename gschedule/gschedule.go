@@ -211,7 +211,8 @@ func parseField(s string, min, max int) ([]int, error) {
 		}
 		return res, nil
 	}
-	for _, part := range strings.Split(s, ",") {
+	parts := strings.SplitSeq(s, ",")
+	for part := range parts {
 		if strings.Contains(part, "/") {
 			// 步进，简化实现：只支持 */step
 			sp := strings.Split(part, "/")

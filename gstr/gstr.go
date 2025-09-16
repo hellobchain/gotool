@@ -54,3 +54,26 @@ func SnakeCase(s string) string {
 	}
 	return string(res)
 }
+
+// split
+func Split(s string) []string {
+	return strings.Split(s, " ")
+}
+
+// Join
+func Join(s []string, split string) string {
+	return strings.Join(s, split)
+}
+
+// contain
+func Has(s string, substr string) bool {
+	return strings.Contains(s, substr)
+}
+
+func ReplaceAll(s string, old string, new string) string {
+	return strings.ReplaceAll(s, old, new)
+}
+
+func ReplaceN(s string, old string, new string, n int) string {
+	return strings.Replace(s, old, new, n)
+}
