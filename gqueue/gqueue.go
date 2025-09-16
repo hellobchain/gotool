@@ -24,7 +24,11 @@ func (q *Queue) Take() interface{} {
 		return nil
 	}
 	v := q.data[0]
-	q.data = q.data[1:]
+	if len(q.data) == 1 {
+		q.data = nil
+	} else {
+		q.data = q.data[1:]
+	}
 	return v
 }
 

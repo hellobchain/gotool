@@ -2,10 +2,13 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"time"
 
 	"github.com/hellobchain/gotool/gcli"
 	"github.com/hellobchain/gotool/gcrypto"
 	"github.com/hellobchain/gotool/gexcel"
+	"github.com/hellobchain/gotool/gschedule"
 	"github.com/hellobchain/gotool/gstr"
 	"github.com/hellobchain/gotool/gtree"
 	"github.com/hellobchain/gotool/gvalid"
@@ -40,6 +43,28 @@ func main() {
 	_ = gtree.PrintDir("/tmp", opt)
 
 	// 获取树字符串
-	s, _ := gtree.String(".", gtree.DefaultOption)
-	println(s)
+	st, _ := gtree.String(".", gtree.DefaultOption)
+	println(st)
+
+	s := gschedule.New(10) // 最多 10 并发
+
+	// 1. 每 2 秒一次
+	s.Add("tick", gschedule.Every(2*time.Second), gschedule.JobFunc(func() {
+		log.Println("tick", time.Now().Format("15:04:05"))
+	}))
+
+	// 2. cron：每周一到五 09:00
+	cron, _ := gschedule.NewCron("0 9 * * 1-5")
+	s.Add("job9am", cron, gschedule.JobFunc(func() {
+		log.Println("good morning 9am")
+	}))
+
+	// 3. 单次延迟
+	s.Add("once", gschedule.Delay(3*time.Second), gschedule.JobFunc(func() {
+		log.Println("3s later run once")
+	}))
+
+	// 阻塞 30 秒后优雅退出
+	time.Sleep(30 * time.Second)
+	s.Stop()
 }
