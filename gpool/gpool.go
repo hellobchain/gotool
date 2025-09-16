@@ -5,7 +5,7 @@ type Pool struct {
 }
 
 func New(size int) *Pool {
-	p := &Pool{work: make(chan func())}
+	p := &Pool{work: make(chan func(), size)}
 	for i := 0; i < size; i++ {
 		go func() {
 			for f := range p.work {
