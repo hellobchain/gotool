@@ -2,4 +2,9 @@ module github.com/hellobchain/gotool
 
 go 1.25
 
-require github.com/tjfoc/gmsm v1.4.1
+require (
+	github.com/fsnotify/fsnotify v1.9.0
+	github.com/tjfoc/gmsm v1.4.1
+)
+
+require golang.org/x/sys v0.13.0 // indirect
